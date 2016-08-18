@@ -1,0 +1,21 @@
+<?php
+
+/**
+ * @module_name gusev_analytics_page
+ */
+
+    const ADMIN_CONFIG_GUSEV_ANALYTICS_PAGES = 'admin/config/gusev_analytics/page';
+    
+/**
+ * Implements hook_menu().
+ */
+function gusev_analytics_page_menu() {
+    $items[ADMIN_CONFIG_GUSEV_ANALYTICS_PAGES] = array(
+        'title' => t('Pages analytics'),
+        'page callback' => 'gusev_analytics_admin_page',
+        'access arguments' => array('administer users'),
+        'file' => 'gusev_analytics_page.admin.inc',
+        'file path' => drupal_get_path('module', 'gusev_analytics_page')
+    );
+    return $items;
+}

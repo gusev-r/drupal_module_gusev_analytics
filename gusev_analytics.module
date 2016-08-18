@@ -1,0 +1,100 @@
+<?php
+
+/**
+ * @module_name gusev_analytics
+ */
+
+        const ADMIN_CONFIG_GUSEV_ANALYTICS_BACE = 'admin/config/gusev_analytics';
+        const ADMIN_CONFIG_GUSEV_ANALYTICS_USERS = 'admin/config/gusev_analytics/users';
+
+/**
+ * Implements hook_menu().
+ */
+function gusev_analytics_menu() {
+    $items[ADMIN_CONFIG_GUSEV_ANALYTICS_BACE] = array(
+        'title' => t('Analytics'),
+        'position' => 'left',
+        'weight' => -100,
+        'page callback' => 'system_admin_menu_block_page',
+        'access arguments' => array('administer site configuration'),
+        'file' => 'system.admin.inc',
+        'file path' => drupal_get_path('module', 'system'),
+    );
+    $items[ADMIN_CONFIG_GUSEV_ANALYTICS_USERS] = array(
+        'title' => t('Users analytics'),
+        'page callback' => 'gusev_analytics_users_page',
+        'access arguments' => array('administer users'),
+        'file' => 'gusev_analytics.admin.inc',
+        'file path' => drupal_get_path('module', 'gusev_analytics')
+    );
+    return $items;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function gusev_analytics_theme() {
+    return array(
+        'gusev_analytics_pages' => array(
+            'variables' => array(),
+            'template' => 'gusev-analytics-pages',
+        ),
+    );
+}
+
+function _gusev_analytics_pages_info_render() {
+    $filter_data = isset($_SESSION['gusev_analytics_users_form']) ? $_SESSION['gusev_analytics_users_form'] : array();
+
+    $month = array(
+        1 => 'Январь',
+        2 => 'Февраль',
+        3 => 'Март',
+        4 => 'Апрель',
+        5 => 'Май',
+        6 => 'Июнь',
+        7 => 'Июль',
+        8 => 'Август',
+        9 => 'Сентябрь',
+        10 => 'Октябрь',
+        11 => 'Ноябрь',
+        12 => 'Декабрь'
+    );
+    $year = $filter_data['year'][0];
+    $month = $filter_data['month'][0];
+//    $return['nowYear'] = array();
+//    $return['month'] = $month;
+//    foreach ($month as $key => $value) {
+//        if (date("m") < $key && date("Y") == $year)
+//            break;
+//        $keyFormated = sprintf('%02d', $key);
+//        $data = $year . '-' . $keyFormated . '-01 00:00:00';
+//        $return['nowYear'][$key] = db_select('users', 'u')
+//                ->fields('u')
+//                // ->where('YEAR(FROM_UNIXTIME(u.created)) = :year and MONTH(FROM_UNIXTIME(u.created)) = :month', array(':year' => $filter_data['year'][0], ':month' => $key))
+//                ->where('u.created <= UNIX_TIMESTAMP(:data)', array(':data' => $data))
+//                ->countQuery()
+//                ->execute()
+//                ->fetchField();
+//        //->fetchAll();
+//    }       
+            $keyFormated = sprintf('%02d', $month);
+            $data = $year . '-' . $keyFormated . '-01 00:00:00';
+            dpm($data);
+            $query = db_select('users', 'u');//->fields('u');
+            $query->addExpression('COUNT(*)', 'count');
+            $query->innerJoin('field_data_field_specialization', 'dfs', 'dfs.entity_id = u.uid');
+            $query->innerJoin('taxonomy_term_data', 'ttd', 'dfs.field_specialization_tid = ttd.tid');
+            $query->fields('dfs', array('field_specialization_tid'));
+            $query->fields('ttd', array('name'));
+            $query->groupBy('field_specialization_tid');
+            $query->where('u.created <= UNIX_TIMESTAMP(:data) and u.created >= UNIX_TIMESTAMP(:data - INTERVAL 1 MONTH)', array(':data' => $data));
+            $return['test'] = $query->execute()->fetchAll();
+//    'SELECT COUNT(  `users`.`uid` ) AS count_users,  `field_specialization_tid` ,  `taxonomy_term_data`.`name` 
+//FROM  `users` 
+//JOIN field_data_field_specialization ON users.uid = field_data_field_specialization.entity_id
+//JOIN taxonomy_term_data ON taxonomy_term_data.tid = field_data_field_specialization.field_specialization_tid
+//GROUP BY field_specialization_tid
+//ORDER BY  `count_users` DESC '
+
+    return theme('gusev_analytics_pages', $return);
+}

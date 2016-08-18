@@ -1,0 +1,4 @@
+name = Custom analytics
+description = Analytics by gusev
+package = gusev
+core = "7.x"

@@ -1,0 +1,32 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the user module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function gusev_analytics_page_schema() {
+    $schema['gusev_analytics_page_pages_viewed'] = array(
+        'description' => 'Pages viewed',
+        'fields' => array(
+            'uid' => array(
+                'description' => 'User id',
+                'type' => 'int',
+                'unsigned' => TRUE,
+                'not null' => TRUE,
+            ),
+            'nid' => array(
+                'description' => 'node id',
+                'type' => 'int',
+                'unsigned' => TRUE,
+                'not null' => TRUE,
+            ),
+        ),
+        'primary key' => array('nid', 'uid')
+    );
+
+    return $schema;
+}

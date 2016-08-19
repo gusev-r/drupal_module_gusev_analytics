@@ -61,34 +61,17 @@ function _gusev_analytics_pages_info_render() {
     );
     $year = $filter_data['year'][0];
     $month = $filter_data['month'][0];
-//    $return['nowYear'] = array();
-//    $return['month'] = $month;
-//    foreach ($month as $key => $value) {
-//        if (date("m") < $key && date("Y") == $year)
-//            break;
-//        $keyFormated = sprintf('%02d', $key);
-//        $data = $year . '-' . $keyFormated . '-01 00:00:00';
-//        $return['nowYear'][$key] = db_select('users', 'u')
-//                ->fields('u')
-//                // ->where('YEAR(FROM_UNIXTIME(u.created)) = :year and MONTH(FROM_UNIXTIME(u.created)) = :month', array(':year' => $filter_data['year'][0], ':month' => $key))
-//                ->where('u.created <= UNIX_TIMESTAMP(:data)', array(':data' => $data))
-//                ->countQuery()
-//                ->execute()
-//                ->fetchField();
-//        //->fetchAll();
-//    }       
-            $keyFormated = sprintf('%02d', $month);
-            $data = $year . '-' . $keyFormated . '-01 00:00:00';
-            dpm($data);
-            $query = db_select('users', 'u');//->fields('u');
-            $query->addExpression('COUNT(*)', 'count');
-            $query->innerJoin('field_data_field_specialization', 'dfs', 'dfs.entity_id = u.uid');
-            $query->innerJoin('taxonomy_term_data', 'ttd', 'dfs.field_specialization_tid = ttd.tid');
-            $query->fields('dfs', array('field_specialization_tid'));
-            $query->fields('ttd', array('name'));
-            $query->groupBy('field_specialization_tid');
-            $query->where('u.created <= UNIX_TIMESTAMP(:data) and u.created >= UNIX_TIMESTAMP(:data - INTERVAL 1 MONTH)', array(':data' => $data));
-            $return['test'] = $query->execute()->fetchAll();
+    $keyFormated = sprintf('%02d', $month);
+    $data = $year . '-' . $keyFormated . '-01 00:00:00';
+    $query = db_select('users', 'u'); //->fields('u');
+    $query->addExpression('COUNT(*)', 'count');
+    $query->innerJoin('field_data_field_specialization', 'dfs', 'dfs.entity_id = u.uid');
+    $query->innerJoin('taxonomy_term_data', 'ttd', 'dfs.field_specialization_tid = ttd.tid');
+    $query->fields('dfs', array('field_specialization_tid'));
+    $query->fields('ttd', array('name'));
+    $query->groupBy('field_specialization_tid');
+    $query->where('u.created >= UNIX_TIMESTAMP(:data) and u.created < UNIX_TIMESTAMP(:data + INTERVAL 1 MONTH)', array(':data' => $data));
+    $return['test'] = $query->execute()->fetchAll();
 //    'SELECT COUNT(  `users`.`uid` ) AS count_users,  `field_specialization_tid` ,  `taxonomy_term_data`.`name` 
 //FROM  `users` 
 //JOIN field_data_field_specialization ON users.uid = field_data_field_specialization.entity_id

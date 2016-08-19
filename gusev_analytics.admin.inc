@@ -16,7 +16,7 @@ function gusev_analytics_users_page() {
 
 function gusev_analytics_users_form($form, &$form_state) {
     $filter_data = isset($_SESSION['gusev_analytics_users_form']) ? $_SESSION['gusev_analytics_users_form'] : array();
-    
+
     $nowYear = date("Y");
     $iYear = date("Y") - 5;
     $year = array();
@@ -60,7 +60,7 @@ function gusev_analytics_users_form($form, &$form_state) {
 
 function gusev_analytics_users_form_submit($form, &$form_state, $state) {
     $_SESSION['gusev_analytics_users_form'] = array(
-          'year' => array($form_state['values']['year']),
-          'month' => array($form_state['values']['month']),
-        );
+        'year' => array($form_state['values']['year']),
+        'month' => array($form_state['values']['month']),
+    );
 }

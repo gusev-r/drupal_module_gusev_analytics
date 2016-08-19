@@ -24,8 +24,14 @@ function gusev_analytics_page_schema() {
                 'unsigned' => TRUE,
                 'not null' => TRUE,
             ),
+            'viewing_time' => array(
+                'description' => 'The Unix timestamp when user viewed page',
+                'type' => 'int',
+                'not null' => TRUE,
+                'default' => 0,
+            ),
         ),
-        'primary key' => array('nid', 'uid')
+        'primary key' => array('nid', 'uid', 'viewing_time')
     );
 
     return $schema;

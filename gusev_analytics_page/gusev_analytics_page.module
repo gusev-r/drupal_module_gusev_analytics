@@ -21,20 +21,41 @@ function gusev_analytics_page_menu() {
 }
 
 /**
+ * Implements hook_theme().
+ */
+function gusev_analytics_page_theme() {
+    return array(
+        'gusev_analytics_page_statistic' => array(
+            'variables' => array(),
+            'template' => 'gusev-analytics-page-statistic',
+        ),
+    );
+}
+
+/**
  * Implements hook_preprocess_HOOK().
  */
 function gusev_analytics_page_preprocess_node(&$variables) {
     if ($variables['page'] == true) {
         global $user;
         if ($user->uid != 0) {
-
+            $time = time();
             db_merge('gusev_analytics_page_pages_viewed')
-              ->key(array('uid' => $user->uid,'nid' => $variables['nid']))
-              ->fields(array(
-                        'uid' => $user->uid,
-                        'nid' => $variables['nid']
-                    ))
-              ->execute();
+                    ->key(
+                            array(
+                                'uid' => $user->uid,
+                                'nid' => $variables['nid'],
+                                'viewing_time' => $time
+                            )
+                    )
+                    ->fields(
+                            array(
+                                'uid' => $user->uid,
+                                'nid' => $variables['nid'],
+                                'viewing_time' => $time
+                            )
+                    )
+                    ->execute();
 
 
 
@@ -46,4 +67,54 @@ function gusev_analytics_page_preprocess_node(&$variables) {
               ->execute(); */
         }
     }
+}
+
+function _gusev_analytics_page_statistic_render() {
+    $filter_data = isset($_SESSION['gusev_analytics_pages_form']) ? $_SESSION['gusev_analytics_pages_form'] : array();
+    switch ($filter_data['type'][0]) {
+        case 0:
+            $return['pages_viewed'] = _gusev_analytics_page_get_pages_viewed();
+            break;
+        case 1:
+            $return['pages_viewed'] = _gusev_analytics_page_get_unique_pageviews();
+            break;
+        default:
+            $return['pages_viewed'] = _gusev_analytics_page_get_pages_viewed();
+            break;
+    }
+
+
+    return theme('gusev_analytics_page_statistic', $return);
+}
+
+function _gusev_analytics_page_get_pages_viewed() {
+    $query = db_select('gusev_analytics_page_pages_viewed', 'pv');
+    $query->fields('pv', array('nid'));
+    $query->innerJoin('node', 'n', 'n.nid = pv.nid');
+    $query->fields('n', array('title'));
+    $query->addExpression('COUNT(pv.uid)', 'viewed');
+    $query->groupBy('pv.nid');
+    $query->orderBy('viewed', 'DESC');
+    return $query->execute()->fetchAll();
+    //    SELECT node.title, nid, COUNT( uid ) AS viewed
+    //    FROM  `gusev_analytics_page_pages_viewed` 
+    //    join node on node.nid = gusev_analytics_page_pages_viewed.nid
+    //    GROUP BY uid
+    //    ORDER BY  `viewed` ASC 
+}
+
+function _gusev_analytics_page_get_unique_pageviews() {
+    $query = db_select('gusev_analytics_page_pages_viewed', 'pv');
+    $query->fields('pv', array('nid'));
+    $query->innerJoin('node', 'n', 'n.nid = pv.nid');
+    $query->fields('n', array('title'));
+    $query->addExpression('COUNT(DISTINCT pv.uid)', 'viewed');
+    $query->groupBy('pv.nid');
+    $query->orderBy('viewed', 'DESC');
+    return $query->execute()->fetchAll();
+    //    SELECT node.title, nid, COUNT(DISTINCT uid ) AS viewed
+    //    FROM  `gusev_analytics_page_pages_viewed` 
+    //    join node on node.nid = gusev_analytics_page_pages_viewed.nid
+    //    GROUP BY uid
+    //    ORDER BY  `viewed` ASC 
 }

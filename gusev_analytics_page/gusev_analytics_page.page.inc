@@ -26,6 +26,22 @@ function gusev_analytics_pages_form($form, &$form_state) {
         '#options' => $type,
         '#default_value' => isset($filter_data['type'][0]) ? $filter_data['type'][0] : 0,
     );
+
+    // <special code>
+    $specialization = $terms = entity_load('taxonomy_term', FALSE, array('vid' => 10));
+    if ($specialization) {
+        $options_specialization['-1']= t('All');
+        foreach ($specialization as $term) {
+            $options_specialization[$term->tid] = str_repeat('-', $term->depth) . $term->name;
+        }
+        $form['specialization'] = array(
+            '#type' => 'select',
+            '#title' => t('Type'),
+            '#options' => $options_specialization,
+            '#default_value' => isset($filter_data['specialization'][0]) ? $filter_data['specialization'][0] : key($options_specialization),
+        );
+    }
+    // </special code>
     $form['submit'] = array(
         '#value' => t('Save'),
         '#type' => 'submit',
@@ -37,5 +53,6 @@ function gusev_analytics_pages_form($form, &$form_state) {
 function gusev_analytics_pages_form_submit($form, &$form_state, $state) {
     $_SESSION['gusev_analytics_pages_form'] = array(
         'type' => array($form_state['values']['type']),
+        'specialization' => array($form_state['values']['specialization']),
     );
 }

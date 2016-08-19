@@ -14,7 +14,7 @@ function gusev_analytics_page_menu() {
         'title' => t('Pages analytics'),
         'page callback' => 'gusev_analytics_admin_page',
         'access arguments' => array('administer users'),
-        'file' => 'gusev_analytics_page.admin.inc',
+        'file' => 'gusev_analytics_page.page.inc',
         'file path' => drupal_get_path('module', 'gusev_analytics_page')
     );
     return $items;
@@ -71,15 +71,17 @@ function gusev_analytics_page_preprocess_node(&$variables) {
 
 function _gusev_analytics_page_statistic_render() {
     $filter_data = isset($_SESSION['gusev_analytics_pages_form']) ? $_SESSION['gusev_analytics_pages_form'] : array();
-    switch ($filter_data['type'][0]) {
+    $type = $filter_data['type'][0];
+    $specialization = $filter_data['specialization'][0];
+    switch ($type) {
         case 0:
-            $return['pages_viewed'] = _gusev_analytics_page_get_pages_viewed();
+            $return['pages_viewed'] = _gusev_analytics_page_get_pages_viewed($specialization);
             break;
         case 1:
-            $return['pages_viewed'] = _gusev_analytics_page_get_unique_pageviews();
+            $return['pages_viewed'] = _gusev_analytics_page_get_unique_pageviews($specialization);
             break;
         default:
-            $return['pages_viewed'] = _gusev_analytics_page_get_pages_viewed();
+            $return['pages_viewed'] = _gusev_analytics_page_get_pages_viewed($specialization);
             break;
     }
 
@@ -87,9 +89,13 @@ function _gusev_analytics_page_statistic_render() {
     return theme('gusev_analytics_page_statistic', $return);
 }
 
-function _gusev_analytics_page_get_pages_viewed() {
+function _gusev_analytics_page_get_pages_viewed($specialization) {
     $query = db_select('gusev_analytics_page_pages_viewed', 'pv');
     $query->fields('pv', array('nid'));
+    if($specialization != '-1'){
+        $query->innerJoin('field_data_field_specialization', 'specialization', 'specialization.entity_id = pv.uid');
+        $query->where('specialization.field_specialization_tid = :tid', array(':tid' => $specialization));
+    }
     $query->innerJoin('node', 'n', 'n.nid = pv.nid');
     $query->fields('n', array('title'));
     $query->addExpression('COUNT(pv.uid)', 'viewed');
@@ -103,9 +109,13 @@ function _gusev_analytics_page_get_pages_viewed() {
     //    ORDER BY  `viewed` ASC 
 }
 
-function _gusev_analytics_page_get_unique_pageviews() {
+function _gusev_analytics_page_get_unique_pageviews($specialization) {
     $query = db_select('gusev_analytics_page_pages_viewed', 'pv');
     $query->fields('pv', array('nid'));
+    if($specialization != '-1'){
+        $query->innerJoin('field_data_field_specialization', 'specialization', 'specialization.entity_id = pv.uid');
+        $query->where('specialization.field_specialization_tid = :tid', array(':tid' => $specialization));
+    }
     $query->innerJoin('node', 'n', 'n.nid = pv.nid');
     $query->fields('n', array('title'));
     $query->addExpression('COUNT(DISTINCT pv.uid)', 'viewed');

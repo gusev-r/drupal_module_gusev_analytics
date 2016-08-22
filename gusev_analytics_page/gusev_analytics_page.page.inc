@@ -46,6 +46,22 @@ function gusev_analytics_pages_form($form, &$form_state) {
     // <special code>
     $specialization = $terms = entity_load('taxonomy_term', FALSE, array('vid' => 10));
     if ($specialization) {
+        
+        
+        $options_specialization = array(
+            '-1' => t(All),
+            '9712' => 'Кардиология',
+            '9658' =>'Терапия',
+            '305016' => 'Педиатрия',
+            '11188' =>'Гастроэнтерология',
+            '9710' =>'Пульмонология и Аллергология',
+            '10779' => 'Акушерство и гинекология',
+            '9665' => 'Неврология',
+            '9728' => 'Эндокринология',
+            '305025'=>'Другое',
+            '-200' => '--------------------',
+        );
+        
         $options_specialization['-1'] = t('All');
         foreach ($specialization as $term) {
             $options_specialization[$term->tid] = str_repeat('-', $term->depth) . $term->name;
@@ -58,6 +74,29 @@ function gusev_analytics_pages_form($form, &$form_state) {
         );
     }
     // </special code>
+
+    $format = 'Y-m-d';
+
+    $form['date_begin'] = array(
+        '#type' => 'date_popup', // types 'date_text' and 'date_timezone' are also supported. See .inc file.
+        '#timepicker' => 'timepicker',
+        '#title' => t('Select a begin date'),
+        '#default_value' => isset($filter_data['date_begin'][0]) ? $filter_data['date_begin'][0] : date("Y-m-d", strtotime("-1 month")),
+        '#date_format' => $format,
+        '#date_label_position' => 'within', // See other available attributes and what they do in date_api_elements.inc
+        '#date_increment' => 15, // Optional, used by the date_select and date_popup elements to increment minutes and seconds.
+        '#date_year_range' => '-3:+0', // Optional, used to set the year range (back 3 years and forward 3 years is the default).
+    );
+    $form['date_end'] = array(
+        '#type' => 'date_popup', // types 'date_text' and 'date_timezone' are also supported. See .inc file.
+        '#timepicker' => 'timepicker',
+        '#title' => t('Select a end date'),
+        '#default_value' => isset($filter_data['date_end'][0]) ? $filter_data['date_end'][0] : date("Y-m-d", time()),
+        '#date_format' => $format,
+        '#date_label_position' => 'within', // See other available attributes and what they do in date_api_elements.inc
+        '#date_increment' => 15, // Optional, used by the date_select and date_popup elements to increment minutes and seconds.
+        '#date_year_range' => '-3:+0', // Optional, used to set the year range (back 3 years and forward 3 years is the default).
+    );
     $form['submit'] = array(
         '#value' => t('Save'),
         '#type' => 'submit',
@@ -71,12 +110,26 @@ function gusev_analytics_pages_form($form, &$form_state) {
     return $form;
 }
 
-function gusev_analytics_pages_form_submit($form, &$form_state, $state) {
-    $_SESSION['gusev_analytics_pages_form'] = array(
-        'type' => array($form_state['values']['type']),
-        'specialization' => array($form_state['values']['specialization']),
-    );
+function gusev_analytics_pages_form_validate($form, &$form_state) {
+    $date_begin = strtotime($form_state['values']['date_begin']);
+    $date_end = strtotime($form_state['values']['date_end']);
+    if ($date_begin > $date_end) {
+        form_set_error('date_begin', 'Ошибка');
+        $_SESSION['gusev_analytics_pages_form']['error'] = TRUE;
+    }else{
+        $_SESSION['gusev_analytics_pages_form']['error'] = FALSE;
+    }
 }
+
+function gusev_analytics_pages_form_submit($form, &$form_state, $state) {
+        $_SESSION['gusev_analytics_pages_form'] = array(
+            'type' => array($form_state['values']['type']),
+            'specialization' => array($form_state['values']['specialization']),
+            'date_begin' => array($form_state['values']['date_begin']),
+            'date_end' => array($form_state['values']['date_end'])
+        );
+}
+
 function gusev_analytics_pages_form_xls_submit($form, &$form_state, $state) {
     $_SESSION['gusev_analytics_pages_form_xml'] = TRUE;
 }

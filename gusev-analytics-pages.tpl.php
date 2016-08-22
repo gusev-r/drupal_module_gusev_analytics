@@ -2,3 +2,6 @@
     <strong><?php print $countPeople->name; ?></strong>
     <?php print $countPeople->count; ?> <br>
 <?php endforeach; ?>
+
+<?php
+print $output;
